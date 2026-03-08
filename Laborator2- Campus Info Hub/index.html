@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Info Hub</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Campus Info Hub</h1>
+      <p>Ghid rapid pentru resursele importante din campus.</p>
+      <nav>
+        <ul class="nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="pages/library.html">Biblioteca</a></li>
+          <li><a href="pages/cafeteria.html">Cantina</a></li>
+          <li><a href="pages/events.html">Evenimente</a></li>
+          <li><a href="#dynamic-data">Resurse dinamice</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero card">
+      <h2>Bine ai venit</h2>
+      <p>
+        Acest mini-site prezintă câteva resurse utile pentru studenți: spații de studiu,
+        locuri pentru masă și activități din campus.
+      </p>
+      <p>
+        Exemplu de <strong>relative URL</strong>:
+        <a href="pages/library.html">pages/library.html</a>
+      </p>
+      <p>
+        Exemplu de <strong>absolute URL</strong>:
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API" target="_blank" rel="noopener noreferrer">
+          Documentația Fetch API (MDN)
+        </a>
+      </p>
+      <p>
+        Exemplu de <strong>fragment link</strong>:
+        <a href="pages/library.html#schedule">Jump to schedule</a>
+      </p>
+    </section>
+
+    <section id="dynamic-data" class="card">
+      <h2>Date încărcate dinamic din JSON</h2>
+      <p>Mai jos, datele sunt încărcate cu JavaScript folosind <code>fetch()</code>.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h3>Toate resursele</h3>
+        <ul id="resource-list" class="resource-list">
+          <li>Se încarcă...</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h3>Locuri pentru studiu</h3>
+        <ul id="study-list" class="resource-list">
+          <li>Se încarcă...</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h3>Tag-uri / Categorii</h3>
+        <div id="tag-list" class="tag-container">
+          <span class="tag">Se încarcă...</span>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Campus Info Hub</p>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

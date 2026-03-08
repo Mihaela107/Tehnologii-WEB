@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Biblioteca Centrală",
+    "type": "Study",
+    "location": "Clădirea B, etajele 1-2",
+    "program": "Luni-Vineri 08:00-20:00, Sâmbătă 09:00-16:00",
+    "tags": ["Studiu", "Liniște", "Wi-Fi", "Grupuri"]
+  },
+  {
+    "name": "Cantina Studențească",
+    "type": "Food",
+    "location": "Clădirea C, parter",
+    "program": "Luni-Vineri 10:00-18:00",
+    "tags": ["Mâncare", "Prânz", "Vegetarian", "Relaxare", "Socializare"]
+  },
+  {
+    "name": "Centrul de Evenimente",
+    "type": "Community",
+    "location": "Aula principală și curtea campusului",
+    "program": "Conform calendarului universității",
+    "tags": ["Evenimente", "Workshop", "Social", "Campus"]
+  }
+]
