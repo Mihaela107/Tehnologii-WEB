@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coș de cumpărături</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <section>
+            <h1>Coș de cumpărături</h1>
+            <p>Produsele sunt stocate în <code>sessionStorage</code>, deci coșul este disponibil doar în sesiunea curentă.</p>
+            <nav>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="index.html">Acasă</a>
+            </nav>
+        </section>
+
+        <section>
+            <div id="messageBox"></div>
+            <form id="cartForm">
+                <div>
+                    <label for="product">Produs</label>
+                    <select id="product"></select>
+                </div>
+
+                <div>
+                    <label for="quantity">Cantitate</label>
+                    <input type="number" id="quantity" min="1" max="10" value="1">
+                </div>
+
+                <button type="submit">Adaugă în Coș</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Produse în coș</h2>
+            <table id="cartTable">
+                <thead>
+                    <tr>
+                        <th>Produs</th>
+                        <th>Cantitate</th>
+                        <th>Preț unitar</th>
+                        <th>Subtotal</th>
+                        <th>Acțiune</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <p><strong>TOTAL: <span id="totalPrice">0</span> lei</strong></p>
+            <button id="clearCartBtn" class="btn-danger">Golește Coșul</button>
+        </section>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        const products = {
+            laptop: { name: 'Laptop', price: 2500 },
+            telefon: { name: 'Telefon', price: 1200 },
+            tableta: { name: 'Tabletă', price: 800 },
+            casti: { name: 'Căști', price: 150 }
+        };
+
+        function applyThemeAndPreferences() {
+            const theme = CookieManager.get('theme') || 'light';
+            document.body.classList.remove('light', 'dark');
+            document.body.classList.add(theme);
+            document.body.style.fontSize = (StorageManager.getLocal('fontSize') || '16') + 'px';
+        }
+
+        function ensureAuthenticated() {
+            const session = StorageManager.getSession('session');
+            if (!session) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function showMessage(text, type = 'alert-success') {
+            document.getElementById('messageBox').innerHTML = `<div class="${type}">${text}</div>`;
+        }
+
+        function populateProducts() {
+            const select = document.getElementById('product');
+            select.innerHTML = Object.entries(products)
+                .map(([key, product]) => `<option value="${key}">${product.name} - ${product.price} lei</option>`)
+                .join('');
+        }
+
+        function getCart() {
+            return StorageManager.getSession('cart') || {};
+        }
+
+        function saveCart(cart) {
+            StorageManager.setSession('cart', cart);
+        }
+
+        function renderCart() {
+            const cart = getCart();
+            const tbody = document.querySelector('#cartTable tbody');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            const entries = Object.entries(cart);
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="5">Coșul este gol.</td></tr>';
+            }
+
+            entries.forEach(([key, quantity]) => {
+                const product = products[key];
+                if (!product) return;
+                const subtotal = product.price * quantity;
+                total += subtotal;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${quantity}</td>
+                    <td>${product.price} lei</td>
+                    <td>${subtotal} lei</td>
+                    <td><button class="btn-danger" data-remove="${key}">Șterge</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('totalPrice').textContent = total;
+        }
+
+        document.getElementById('cartForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const productKey = document.getElementById('product').value;
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+
+            if (!productKey || !products[productKey]) {
+                showMessage('Selectează un produs valid.', 'alert-error');
+                return;
+            }
+
+            if (Number.isNaN(quantity) || quantity < 1 || quantity > 10) {
+                showMessage('Cantitatea trebuie să fie între 1 și 10.', 'alert-error');
+                return;
+            }
+
+            const cart = getCart();
+            cart[productKey] = (cart[productKey] || 0) + quantity;
+            saveCart(cart);
+            renderCart();
+            showMessage('Produsul a fost adăugat în coș.');
+        });
+
+        document.addEventListener('click', (event) => {
+            const removeButton = event.target.closest('button[data-remove]');
+            if (removeButton) {
+                const key = removeButton.dataset.remove;
+                const cart = getCart();
+                delete cart[key];
+                saveCart(cart);
+                renderCart();
+                showMessage('Produsul a fost eliminat din coș.');
+            }
+        });
+
+        document.getElementById('clearCartBtn').addEventListener('click', () => {
+            StorageManager.removeSession('cart');
+            renderCart();
+            showMessage('Coșul a fost golit.');
+        });
+
+        applyThemeAndPreferences();
+        if (ensureAuthenticated()) {
+            populateProducts();
+            renderCart();
+        }
+    </script>
+</body>
+</html>

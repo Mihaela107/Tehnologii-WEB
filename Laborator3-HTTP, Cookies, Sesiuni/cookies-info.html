@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informații Cookies și Storage</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <section>
+            <h1>Cookies, localStorage și sessionStorage</h1>
+            <p>Aici poți vedea atât valorile brute, cât și tabele detaliate pentru toate datele stocate în browser.</p>
+            <nav>
+                <a href="index.html">Acasă</a>
+                <a href="preferences.html">Preferințe</a>
+                <a href="login.html">Login</a>
+            </nav>
+            <div id="messageBox"></div>
+        </section>
+
+        <section>
+            <h2>Cookies</h2>
+            <p><strong>document.cookie:</strong></p>
+            <pre id="rawCookies"></pre>
+            <table id="cookiesTable">
+                <thead>
+                    <tr>
+                        <th>Nume</th>
+                        <th>Valoare</th>
+                        <th>Lungime</th>
+                        <th>Acțiune</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>localStorage</h2>
+            <p><strong>JSON formatat:</strong></p>
+            <pre id="localJson"></pre>
+            <table id="localTable">
+                <thead>
+                    <tr>
+                        <th>Cheie</th>
+                        <th>Valoare</th>
+                        <th>Dimensiune</th>
+                        <th>Acțiune</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>sessionStorage</h2>
+            <p><strong>JSON formatat:</strong></p>
+            <pre id="sessionJson"></pre>
+            <table id="sessionTable">
+                <thead>
+                    <tr>
+                        <th>Cheie</th>
+                        <th>Valoare</th>
+                        <th>Dimensiune</th>
+                        <th>Acțiune</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Tabel comparativ</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Caracteristică</th>
+                        <th>Cookies</th>
+                        <th>localStorage</th>
+                        <th>sessionStorage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Capacitate</td>
+                        <td>Mică (~4KB/cookie)</td>
+                        <td>Mare (~5-10MB)</td>
+                        <td>Mare (~5MB)</td>
+                    </tr>
+                    <tr>
+                        <td>Expirare</td>
+                        <td>Configurabilă</td>
+                        <td>Persistă până la ștergere</td>
+                        <td>Până la închiderea tab-ului</td>
+                    </tr>
+                    <tr>
+                        <td>Trimis la server?</td>
+                        <td>Da, la fiecare cerere HTTP</td>
+                        <td>Nu</td>
+                        <td>Nu</td>
+                    </tr>
+                    <tr>
+                        <td>Accesibil din?</td>
+                        <td>Browser + server</td>
+                        <td>Doar JavaScript în browser</td>
+                        <td>Doar JavaScript în browser</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        function applyThemeAndPreferences() {
+            const theme = CookieManager.get('theme') || 'light';
+            document.body.classList.remove('light', 'dark');
+            document.body.classList.add(theme);
+            document.body.style.fontSize = (StorageManager.getLocal('fontSize') || '16') + 'px';
+        }
+
+        function showMessage(text, type = 'alert-success') {
+            document.getElementById('messageBox').innerHTML = `<div class="${type}">${text}</div>`;
+        }
+
+        function stringifyValue(value) {
+            return typeof value === 'string' ? value : JSON.stringify(value);
+        }
+
+        function renderCookies() {
+            const cookies = CookieManager.getAll();
+            const tbody = document.querySelector('#cookiesTable tbody');
+            tbody.innerHTML = '';
+            document.getElementById('rawCookies').textContent = document.cookie || '(gol)';
+
+            const entries = Object.entries(cookies);
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="4">Nu există cookie-uri active.</td></tr>';
+                return;
+            }
+
+            entries.forEach(([name, value]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>${value}</td>
+                    <td>${value.length}</td>
+                    <td><button class="btn-danger" data-type="cookie" data-key="${name}">Șterge</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderStorage(tableSelector, jsonSelector, data, type) {
+            const tbody = document.querySelector(tableSelector + ' tbody');
+            tbody.innerHTML = '';
+            document.querySelector(jsonSelector).textContent = JSON.stringify(data, null, 2) || '{}';
+
+            const entries = Object.entries(data || {});
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="4">Nu există date.</td></tr>';
+                return;
+            }
+
+            entries.forEach(([key, value]) => {
+                const displayValue = stringifyValue(value);
+                const size = displayValue.length;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${key}</td>
+                    <td><pre>${typeof value === 'string' ? value : JSON.stringify(value, null, 2)}</pre></td>
+                    <td>${size}</td>
+                    <td><button class="btn-danger" data-type="${type}" data-key="${key}">Șterge</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderAll() {
+            applyThemeAndPreferences();
+            renderCookies();
+            renderStorage('#localTable', '#localJson', StorageManager.getAllLocal(), 'local');
+            renderStorage('#sessionTable', '#sessionJson', StorageManager.getAllSession(), 'session');
+        }
+
+        document.addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-type]');
+            if (!button) return;
+
+            const type = button.dataset.type;
+            const key = button.dataset.key;
+
+            if (type === 'cookie') {
+                CookieManager.delete(key);
+                showMessage(`Cookie-ul "${key}" a fost șters.`);
+            } else if (type === 'local') {
+                StorageManager.removeLocal(key);
+                showMessage(`Cheia localStorage "${key}" a fost ștearsă.`);
+            } else if (type === 'session') {
+                StorageManager.removeSession(key);
+                showMessage(`Cheia sessionStorage "${key}" a fost ștearsă.`);
+            }
+
+            renderAll();
+        });
+
+        renderAll();
+    </script>
+</body>
+</html>

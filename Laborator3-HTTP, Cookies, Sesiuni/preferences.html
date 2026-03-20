@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preferințe utilizator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <section>
+            <h1>Setări Preferințe</h1>
+            <p>Completează formularul pentru a salva preferințele personale în cookies și localStorage.</p>
+
+            <nav>
+                <a href="index.html">Acasă</a>
+                <a href="cookies-info.html">Informații Cookies</a>
+                <a href="login.html">Login</a>
+            </nav>
+        </section>
+
+        <section>
+            <div id="messageBox"></div>
+            <form id="preferencesForm">
+                <div>
+                    <label for="username">Nume utilizator</label>
+                    <input type="text" id="username" name="username" placeholder="Ex: Andrei">
+                </div>
+
+                <div>
+                    <label for="theme">Tema</label>
+                    <select id="theme" name="theme">
+                        <option value="light">Luminos</option>
+                        <option value="dark">Întunecat</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="language">Limba</label>
+                    <select id="language" name="language">
+                        <option value="ro">Română</option>
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="fontSize">Dimensiune font</label>
+                    <select id="fontSize" name="fontSize">
+                        <option value="14">14px</option>
+                        <option value="16">16px</option>
+                        <option value="18">18px</option>
+                        <option value="20">20px</option>
+                    </select>
+                </div>
+
+                <button type="submit">Salvează preferințele</button>
+            </form>
+        </section>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        function applyTheme(theme) {
+            document.body.classList.remove('light', 'dark');
+            document.body.classList.add(theme || 'light');
+        }
+
+        function applyFontSize(size) {
+            document.body.style.fontSize = (size || '16') + 'px';
+        }
+
+        function showMessage(text, type) {
+            document.getElementById('messageBox').innerHTML = `<div class="${type}">${text}</div>`;
+        }
+
+        function populateForm() {
+            const username = CookieManager.get('username') || '';
+            const theme = CookieManager.get('theme') || 'light';
+            const language = StorageManager.getLocal('language') || 'ro';
+            const fontSize = StorageManager.getLocal('fontSize') || '16';
+
+            document.getElementById('username').value = username;
+            document.getElementById('theme').value = theme;
+            document.getElementById('language').value = language;
+            document.getElementById('fontSize').value = fontSize;
+
+            applyTheme(theme);
+            applyFontSize(fontSize);
+        }
+
+        document.getElementById('theme').addEventListener('change', (e) => applyTheme(e.target.value));
+        document.getElementById('fontSize').addEventListener('change', (e) => applyFontSize(e.target.value));
+
+        document.getElementById('preferencesForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value.trim() || 'Vizitator';
+            const theme = document.getElementById('theme').value;
+            const language = document.getElementById('language').value;
+            const fontSize = document.getElementById('fontSize').value;
+
+            CookieManager.set('username', username, 365);
+            CookieManager.set('theme', theme, 365);
+            StorageManager.setLocal('language', language);
+            StorageManager.setLocal('fontSize', fontSize);
+
+            applyTheme(theme);
+            applyFontSize(fontSize);
+            showMessage('Preferințele au fost salvate cu succes. Vei fi redirecționat către pagina principală.', 'alert-success');
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        });
+
+        populateForm();
+    </script>
+</body>
+</html>

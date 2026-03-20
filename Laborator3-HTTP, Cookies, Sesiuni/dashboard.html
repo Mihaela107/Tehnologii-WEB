@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <section>
+            <h1>Dashboard utilizator</h1>
+            <p>Pagina este accesibilă doar dacă există o sesiune activă în sessionStorage.</p>
+            <nav>
+                <a href="index.html">Acasă</a>
+                <a href="cart.html">Coș de cumpărături</a>
+            </nav>
+        </section>
+
+        <section>
+            <div id="sessionInfo" class="stats"></div>
+        </section>
+
+        <section>
+            <div class="actions">
+                <a href="dashboard.html" target="_blank" rel="noopener noreferrer" class="button-link">Deschide dashboard într-un tab nou</a>
+                <button id="logoutBtn" class="btn-danger">Deconectare</button>
+            </div>
+            <p class="small">Cu <code>rel="noopener noreferrer"</code>, tab-ul nou pornește fără sesiunea curentă și va redirecționa către login.</p>
+        </section>
+
+        <section>
+            <h2>Date brute din sessionStorage</h2>
+            <pre id="rawSession"></pre>
+        </section>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        let sessionDurationInterval;
+
+        function applyThemeAndPreferences() {
+            const theme = CookieManager.get('theme') || 'light';
+            document.body.classList.remove('light', 'dark');
+            document.body.classList.add(theme);
+            document.body.style.fontSize = (StorageManager.getLocal('fontSize') || '16') + 'px';
+        }
+
+        function getSessionData() {
+            return StorageManager.getSession('session');
+        }
+
+        function ensureAuthenticated() {
+            const session = getSessionData();
+            if (!session) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return session;
+        }
+
+        function formatDuration(loginTime) {
+            const diffMs = Date.now() - new Date(loginTime).getTime();
+            const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+            const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function renderSessionInfo(session) {
+            const container = document.getElementById('sessionInfo');
+            container.innerHTML = `
+                <div class="stat"><span class="small">ID Sesiune</span><strong>${session.sessionId}</strong></div>
+                <div class="stat"><span class="small">Username</span><strong>${session.username}</strong></div>
+                <div class="stat"><span class="small">Email</span><strong>${session.email}</strong></div>
+                <div class="stat"><span class="small">Ora autentificării</span><strong>${new Date(session.loginTime).toLocaleString('ro-RO')}</strong></div>
+                <div class="stat"><span class="small">Durata sesiunii</span><strong id="sessionDuration">${formatDuration(session.loginTime)}</strong></div>
+            `;
+        }
+
+        function renderRawSession() {
+            document.getElementById('rawSession').textContent = JSON.stringify(StorageManager.getAllSession(), null, 2);
+        }
+
+        function startSessionTimer(session) {
+            clearInterval(sessionDurationInterval);
+            sessionDurationInterval = setInterval(() => {
+                const durationElement = document.getElementById('sessionDuration');
+                if (durationElement) {
+                    durationElement.textContent = formatDuration(session.loginTime);
+                }
+                renderRawSession();
+            }, 1000);
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            StorageManager.clearSession();
+            window.location.href = 'login.html';
+        });
+
+        applyThemeAndPreferences();
+        const session = ensureAuthenticated();
+        if (session) {
+            renderSessionInfo(session);
+            renderRawSession();
+            startSessionTimer(session);
+        }
+    </script>
+</body>
+</html>

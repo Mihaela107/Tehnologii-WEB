@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Înregistrare</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <section>
+            <h1>Creare cont</h1>
+            <p>Completează formularul de mai jos pentru a adăuga un utilizator nou în localStorage.</p>
+            <nav>
+                <a href="index.html">Acasă</a>
+                <a href="login.html">Login</a>
+            </nav>
+        </section>
+
+        <section>
+            <div id="messageBox"></div>
+            <form id="registerForm">
+                <div>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required minlength="3">
+                </div>
+
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+
+                <div>
+                    <label for="password">Parolă</label>
+                    <input type="password" id="password" required minlength="6">
+                </div>
+
+                <div>
+                    <label for="confirmPassword">Confirmare parolă</label>
+                    <input type="password" id="confirmPassword" required minlength="6">
+                </div>
+
+                <button type="submit">Înregistrează-mă</button>
+            </form>
+        </section>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        function applyThemeAndPreferences() {
+            const theme = CookieManager.get('theme') || 'light';
+            document.body.classList.remove('light', 'dark');
+            document.body.classList.add(theme);
+            document.body.style.fontSize = (StorageManager.getLocal('fontSize') || '16') + 'px';
+        }
+
+        function showMessage(text, type = 'alert-error') {
+            document.getElementById('messageBox').innerHTML = `<div class="${type}">${text}</div>`;
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!username || !email || !password || !confirmPassword) {
+                showMessage('Toate câmpurile sunt obligatorii.');
+                return;
+            }
+
+            if (username.length < 3) {
+                showMessage('Username-ul trebuie să aibă minim 3 caractere.');
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showMessage('Adresa de email nu are un format valid.');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('Parola trebuie să aibă minim 6 caractere.');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage('Parolele nu coincid.');
+                return;
+            }
+
+            const users = StorageManager.getLocal('users') || [];
+            const usernameExists = users.some(user => user.username.toLowerCase() === username.toLowerCase());
+            const emailExists = users.some(user => user.email.toLowerCase() === email.toLowerCase());
+
+            if (usernameExists) {
+                showMessage('Username-ul există deja.');
+                return;
+            }
+
+            if (emailExists) {
+                showMessage('Email-ul există deja.');
+                return;
+            }
+
+            const newUser = {
+                id: users.length ? Math.max(...users.map(user => user.id)) + 1 : 1,
+                username,
+                email,
+                password
+            };
+
+            users.push(newUser);
+            StorageManager.setLocal('users', users);
+            showMessage('Cont creat cu succes. Vei fi redirecționat către login.', 'alert-success');
+
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1200);
+        });
+
+        applyThemeAndPreferences();
+    </script>
+</body>
+</html>
